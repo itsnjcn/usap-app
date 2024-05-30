@@ -17,7 +17,7 @@
 		<meta name="application-name" content="Talk" />
 
 		<link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png" />
-		<link rel="icon" href="icons/favicon.svg" />
+		<link rel="icon" href="icons/icon.png" />
 		<link rel="stylesheet" href="styles.css" />
 		<script defer src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
 		<script
@@ -28,7 +28,7 @@
 		<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
 		<script defer src="script.js"></script>
 		<script defer src="webrtc.js"></script>
-		<title>Talk - Free video calling for the web</title>
+		<title>usap!</title>
 	</head>
 
 	<body>
@@ -39,15 +39,18 @@
 			<div id="appWrap" v-bind:style="'display:block;'">
 				<!-- MAIN PAGE-->
 				<div id="intro" v-if="!callInitiated && !showChat && !showSettings">
-					<h1>Talk</h1>
-					<p>A free, peer-to-peer, encrypted, open-source video calling for the web.</p>
+					<img src="icons/fullb.png" />
+					<p id="center">Communicate, enjoy, and connect with usap!</p>
+					<h2>Welcome! {User}!</h2>
 					<p>
-						<label for="roomId">Room Id:</label>
-						<input type="text" id="roomId" v-model="roomId" placeholder="Enter a room id" />
+						<label for="roomId">Room ID:</label>
+						<input type="text" id="roomId" v-model="roomId" placeholder="Enter a room id" maxlength="6"/>
+						<small>Room IDs generate automatically. Enter the ID to join your peers!</small>
 					</p>
 					<p>
 						<label for="yourName">Your name</label>
 						<input type="text" id="yourName" v-model="name" v-on:keyup="updateName" placeholder="Enter your name" />
+						<small>Leave this field blank to use your account's name instead.</small>
 					</p>
 					<br />
 
@@ -109,7 +112,7 @@
 					</div>
 					<hr class="separator" />
 
-					<div class="link" v-on:click="copyURL">{{copyText || "Copy room link"}}</div>
+					<div class="link" v-on:click="copyURL">{{copyText || "Copy room link 🔗"}}</div>
 					<hr class="separator" />
 					<div class="link" v-on:click="toggleSelfVideoMirror">
 						Mirror / Unmirror
