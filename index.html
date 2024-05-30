@@ -29,9 +29,6 @@
 		<script defer src="script.js"></script>
 		<script defer src="webrtc.js"></script>
 		<title>Talk - Free video calling for the web</title>
-
-		<!-- ANALYTICS_SCRIPT: Please remove it for your use -->
-		<script async defer src="https://scripts.withcabin.com/hello.js"></script>
 	</head>
 
 	<body>
@@ -56,7 +53,7 @@
 
 					<div class="footer">
 						<button v-on:click="initiateCall">Proceed</button>
-						<a href="usap.njcn.dev/cdn-cgi/access/logout">Logout</a>
+						<button v-on:click="logout">Logout</button>
 					</div>
 				</div>
 

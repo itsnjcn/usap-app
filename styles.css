@@ -252,8 +252,7 @@ input {
 #chatWrap .chat .name {
 	font-weight: bold;
 }
-#chatWrap .chat .message {
-}
+
 #chatWrap .chat .date {
 	font-size: small;
 }
