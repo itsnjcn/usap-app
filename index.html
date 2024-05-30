@@ -130,7 +130,7 @@
 							v-bind:class="'icon-monitor '+(screenShareEnabled ? 'active' : '')"
 							v-on:click="screenShareToggle"
 						></button>
-						<a v-bind:class="'icon-exit'" v-on:click="exit" href="https://usap.njcn.dev"></a>
+						<a class="noDecoration" v-bind:class="'icon-exit'" v-on:click="exit" href="https://usap.njcn.dev"></a>
 						<button
 							v-bind:class="'icon-more-horizontal '+(showSettings ? 'active' : '')"
 							v-on:click="showSettings = !showSettings"

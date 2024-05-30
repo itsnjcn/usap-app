@@ -215,7 +215,7 @@ input {
 	border-radius: 15px;
 	padding: 0.5rem 1rem;
 	cursor: pointer;
-	text-decoration: none;
+	text-decoration: none !important;
 }
 
 #chatWrap {
@@ -358,7 +358,8 @@ input {
 	border-radius: 1rem;
 	transition: opacity 250ms;
 }
-#actions button {
+#actions button,
+#actions a {
 	flex: 1;
 	background: none;
 	border: none;
@@ -368,8 +369,9 @@ input {
 	margin: auto;
 	color: var(--actions-btn-cl);
 }
-#actions button:hover {
-	background: var(--actions-btn-h-bg);
+#actions button:hover,
+#actions a:hover {
+	background-color:#878787;
 	color: var(--actions-btn-h-cl);
 	border-radius: 1rem;
 }
@@ -377,9 +379,13 @@ input {
 	background: var(--actions-btn-a-bg);
 	border-radius: 1rem;
 }
+
+
+
 #actions a.icon-exit,
 #actions a.icon-mic-off,
 #actions a.icon-video-off {
+	text-decoration: none !important;
 	color: #e74c3c !important;
 }
 
