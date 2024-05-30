@@ -310,9 +310,5 @@ const App = Vue.createApp({
 			this.callEnded = true;
 			location.reload();
 		},
-		logout() {
-			// add /cdn-cgi/access/logout as a path to the logout button
-			window.open("/cdn-cgi/access/logout", "_self");
-		}
 	},
 }).mount("#app");
