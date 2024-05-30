@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Check</title>
+    <script>
+        // This variable simulates the user's login status
+        // In a real-world application, this would be determined by your authentication logic
+        let isLoggedIn = false; // Change this to true to simulate a logged-in user
+
+        function checkLoginStatus() {
+            if (isLoggedIn) {
+                // User is logged in, redirect to the main page
+                window.location.href = 'main.html';
+            } else {
+                // User is not logged in, show an alert and redirect to the login page
+                alert('You must be logged in to proceed to the main page.');
+                window.location.href = 'login.html';
+            }
+        }
+        
+        // Call the function on page load
+        window.onload = checkLoginStatus;
+    </script>
+</head>
+<body>
+    <h1>Welcome to the Site</h1>
+    <p>Checking login status...</p>
+</body>
+</html>

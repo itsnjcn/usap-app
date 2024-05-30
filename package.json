@@ -1,0 +1,29 @@
+{
+	"name": "talk",
+	"version": "4.0.0",
+	"description": "A free, peer-to-peer, encrypted, open-source video calling for the web.",
+	"main": "signalling-server/index.js",
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1",
+		"start": "node signalling-server/index.js"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/vasanthv/talk.git"
+	},
+	"keywords": [
+		"webrtc",
+		"socket.io",
+		"video"
+	],
+	"author": "Vasanth.V <imvasanthv@gmail.com>",
+	"license": "MIT",
+	"bugs": {
+		"url": "https://github.com/vasanthv/talk/issues"
+	},
+	"homepage": "https://github.com/vasanthv/talk#readme",
+	"dependencies": {
+		"express": "^4.18.2",
+		"socket.io": "^4.5.3"
+	}
+}
