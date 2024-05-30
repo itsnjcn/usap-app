@@ -377,9 +377,9 @@ input {
 	background: var(--actions-btn-a-bg);
 	border-radius: 1rem;
 }
-#actions button.icon-exit,
-#actions button.icon-mic-off,
-#actions button.icon-video-off {
+#actions a.icon-exit,
+#actions a.icon-mic-off,
+#actions a.icon-video-off {
 	color: #e74c3c !important;
 }
 
