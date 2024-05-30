@@ -53,7 +53,7 @@
 
 					<div class="footer">
 						<button v-on:click="initiateCall">Proceed</button>
-						<a href="https://usap.njcn.dev/cdn-cgi/access/logout">Logout</a>
+						<a href="https://usap-app.njcn.dev/cdn-cgi/access/logout">Logout</a>
 					</div>
 				</div>
 
@@ -130,7 +130,7 @@
 							v-bind:class="'icon-monitor '+(screenShareEnabled ? 'active' : '')"
 							v-on:click="screenShareToggle"
 						></button>
-						<a class="noDecoration" v-bind:class="'icon-exit'" v-on:click="exit" href="https://usap.njcn.dev"></a>
+						<a class="noDecoration" v-bind:class="'icon-exit'" v-on:click="exit" href="https://usap-app.njcn.dev"></a>
 						<button
 							v-bind:class="'icon-more-horizontal '+(showSettings ? 'active' : '')"
 							v-on:click="showSettings = !showSettings"
