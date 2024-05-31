@@ -58,8 +58,8 @@ app.get('/', (req, res) => {
       return res.status(500).send({ status: false, message: 'error writing JSON file' });
     }
     console.log('JSON file written successfully');
-    res.send('Hello World!');
-    console.log('Hello World!');
+
+    console.log('Hello World! from jwtread.js');
   });
 });
 
