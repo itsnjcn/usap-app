@@ -45,14 +45,22 @@ app.use(cookieParser());
 app.use(verifyToken);
 
 app.get('/', (req, res) => {
-  res.send('Hello World!');
   // Create a json file to collect simple user data from JWT's payload such as NAME, and EMAIL
-  const { name, email } = req.user;
-  const user = { name, email };
-  res.json(user);
+  const userData = {
+    name: req.user.name, // Assuming 'name' is a field in the JWT payload
+    email: req.user.email // Assuming 'email' is a field in the JWT payload
+  };
 
-  res.json(email);
-  res.send("Your email is", email, "and your name is", name);
+  // Write userData to a JSON file
+  fs.writeFile('userData.json', JSON.stringify(userData), (err) => {
+    if (err) {
+      console.error('Error writing JSON file:', err);
+      return res.status(500).send({ status: false, message: 'error writing JSON file' });
+    }
+    console.log('JSON file written successfully');
+    res.send('Hello World!');
+    console.log('Hello World!');
+  });
 });
 
 app.listen(3333)

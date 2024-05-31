@@ -25,6 +25,19 @@
 </head>
 
 <body>
+	<script>
+		// Step 1: Read the JSON file
+		fetch('userData.json')
+			.then(response => response.json())
+			.then(data => {
+				// Step 2: Parse JSON data
+				const name = data.name;
+				// Step 3: Access Desired Variable
+				document.getElementById('userName').textContent = name;
+				// Step 4: Insert Variable into HTML
+			});
+	</script>
+
 	<section id="blanket"></section>
 	<section id="videos"></section>
 
@@ -34,7 +47,7 @@
 			<div id="intro" v-if="!callInitiated && !showChat && !showSettings">
 				<img src="icons/fullb.png" />
 				<p id="center">Communicate, enjoy, and connect with usap!</p>
-				<h2>Welcome! {User}!</h2>
+				<h2>Welcome! <a id="userName"></a>!</h2>
 				<p>
 					<label for="roomId">Room ID:</label>
 					<input type="text" id="roomId" v-model="roomId" placeholder="Enter a room id" maxlength="6" />
