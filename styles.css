@@ -35,6 +35,15 @@
 	--vh: 1vh;
 }
 
+.selector {
+    user-drag: none;
+    -webkit-user-drag: none;
+    user-select: none;
+    -moz-user-select: none;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+}
+
 * {
 	outline: none;
 	box-sizing: border-box;
@@ -274,6 +283,22 @@ img {
 	text-decoration: none !important;
 }
 
+footer {
+	position: fixed;
+	bottom: 0px;
+	left: 0px;
+	right: 0px;
+	z-index: 100;
+	padding: 0.5rem;
+	box-sizing: border-box;
+	text-align: center;
+	color: #edddd4
+}
+
+footer a {
+	color: #edddd4;
+}
+
 #chatWrap {
 	background: var(--chat-wrap-bg);
 	position: fixed;
@@ -456,8 +481,6 @@ img {
 	background: var(--actions-btn-a-bg);
 	border-radius: 1rem;
 }
-
-
 
 #actions a.icon-exit,
 #actions a.icon-mic-off,

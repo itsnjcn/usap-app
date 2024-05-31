@@ -48,17 +48,20 @@
 						<small>Room IDs generate automatically. Enter the ID to join your peers!</small>
 					</p>
 					<p>
-						<label for="yourName">Your name</label>
+						<label for="yourName">Name:</label>
 						<input type="text" id="yourName" v-model="name" v-on:keyup="updateName" placeholder="Enter your name" />
 						<small>Leave this field blank to use your account's name instead.</small>
 					</p>
-					<br />
 
 					<div class="footer">
-						<button v-on:click="initiateCall">Proceed</button>
+						<button v-on:click="initiateCall">Proceed ➡</button>
 						<a href="https://usap-app.njcn.dev/cdn-cgi/access/logout">Logout</a>
 					</div>
+					<footer>
+						<small>&copy 2024 <a href="https://njcn.dev/">njcn.dev</a>. All Rights Reserved</small>
+					</footer>
 				</div>
+				
 
 				<!-- CALL PAGE -->
 				<div id="chatWrap" v-if="showChat">
@@ -133,7 +136,7 @@
 							v-bind:class="'icon-monitor '+(screenShareEnabled ? 'active' : '')"
 							v-on:click="screenShareToggle"
 						></button>
-						<a class="noDecoration" v-bind:class="'icon-exit'" v-on:click="exit" href="https://usap-app.njcn.dev"></a>
+						<a class="noDecoration" v-bind:class="'icon-exit'" v-on:click="exit" data-href="https://usap-app.njcn.dev"></a>
 						<button
 							v-bind:class="'icon-more-horizontal '+(showSettings ? 'active' : '')"
 							v-on:click="showSettings = !showSettings"

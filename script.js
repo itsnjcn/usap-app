@@ -60,16 +60,67 @@ const App = Vue.createApp({
 		},
 		audioToggle(e) {
 			e.stopPropagation();
-			localMediaStream.getAudioTracks()[0].enabled = !localMediaStream.getAudioTracks()[0].enabled;
-			this.audioEnabled = !this.audioEnabled;
+			const audioTracks = localMediaStream.getAudioTracks();
+			if (audioTracks.length > 0) {
+				if (this.audioEnabled) {
+					// Stop the audio track
+					audioTracks[0].stop();
+					this.audioEnabled = false;
+				} else {
+					// Restart the audio track using the selected audio device
+					this.audioEnabled = true;
+					navigator.mediaDevices.getUserMedia({ audio: { deviceId: this.selectedAudioDeviceId } })
+						.then((stream) => {
+							const newAudioTrack = stream.getAudioTracks()[0];
+							const newStream = new MediaStream([...localMediaStream.getVideoTracks(), newAudioTrack]);
+							localMediaStream = newStream;
+							attachMediaStream(document.getElementById("selfVideo"), newStream);
+							for (let peer_id in peers) {
+								const sender = peers[peer_id].getSenders().find((s) => s.track && s.track.kind === "audio");
+								if (sender) {
+									sender.replaceTrack(newAudioTrack);
+								}
+							}
+						})
+						.catch((err) => {
+							console.error('Error restarting audio track: ', err);
+						});
+				}
+			}
 			this.updateUserData("audioEnabled", this.audioEnabled);
 		},
 		videoToggle(e) {
 			e.stopPropagation();
-			localMediaStream.getVideoTracks()[0].enabled = !localMediaStream.getVideoTracks()[0].enabled;
-			this.videoEnabled = !this.videoEnabled;
+			const videoTracks = localMediaStream.getVideoTracks();
+			if (videoTracks.length > 0) {
+				if (this.videoEnabled) {
+					// Stop the video track
+					videoTracks[0].stop();
+					this.videoEnabled = false;
+				} else {
+					// Restart the video track using the selected video device
+					this.videoEnabled = true;
+					navigator.mediaDevices.getUserMedia({ video: { deviceId: this.selectedVideoDeviceId } })
+						.then((stream) => {
+							const newVideoTrack = stream.getVideoTracks()[0];
+							const newStream = new MediaStream([newVideoTrack, ...localMediaStream.getAudioTracks()]);
+							localMediaStream = newStream;
+							attachMediaStream(document.getElementById("selfVideo"), newStream);
+							for (let peer_id in peers) {
+								const sender = peers[peer_id].getSenders().find((s) => s.track && s.track.kind === "video");
+								if (sender) {
+									sender.replaceTrack(newVideoTrack);
+								}
+							}
+						})
+						.catch((err) => {
+							console.error('Error restarting video track: ', err);
+						});
+				}
+			}
 			this.updateUserData("videoEnabled", this.videoEnabled);
 		},
+
 		toggleSelfVideoMirror() {
 			document.querySelector("#videos .video #selfVideo").classList.toggle("mirror");
 		},
