@@ -1,21 +1,24 @@
-/* globals attachMediaStream, Vue,  peers, localMediaStream, dataChannels, signalingSocket */
+/* globals attachMediaStream, Vue, peers, localMediaStream, dataChannels, signalingSocket */
 
 "use strict";
 
 const searchParams = new URLSearchParams(window.location.search);
-let roomId = searchParams.get("room");
+let roomId = searchParams.get("room") || generateRoomId();
 
-if (!roomId) {
-	roomId = Math.random().toString(36).substr(2, 6);
+if (!searchParams.has("room")) {
 	searchParams.set("room", roomId);
 	window.location.search = searchParams.toString();
+}
+
+function generateRoomId() {
+	return Math.random().toString(36).substr(2, 6);
 }
 
 const App = Vue.createApp({
 	data() {
 		return {
 			peerId: "",
-			roomId: roomId,
+			roomId,
 			roomLink: "",
 			copyText: "",
 			userAgent: "",
@@ -33,7 +36,7 @@ const App = Vue.createApp({
 			hideToolbar: true,
 			selectedAudioDeviceId: "",
 			selectedVideoDeviceId: "",
-			name: window.localStorage.name,
+			name: window.localStorage.name || "",
 			typing: "",
 			chats: [],
 			callInitiated: false,
@@ -43,84 +46,53 @@ const App = Vue.createApp({
 	methods: {
 		initiateCall() {
 			if (!this.roomId) return alert("Invalid room id");
-
 			if (!this.name) return alert("Invalid name");
 
 			this.callInitiated = true;
 			window.initiateCall();
 		},
 		copyURL() {
-			navigator.clipboard.writeText(this.roomLink).then(
-				() => {
+			navigator.clipboard.writeText(this.roomLink)
+				.then(() => {
 					this.copyText = "Copied 👍";
 					setTimeout(() => (this.copyText = ""), 3000);
-				},
-				(err) => console.error(err)
-			);
+				})
+				.catch(console.error);
+		},
+		async toggleMedia(e, type) {
+			e.stopPropagation();
+			const tracks = type === "audio" ? localMediaStream.getAudioTracks() : localMediaStream.getVideoTracks();
+
+			if (tracks.length > 0) {
+				if (type === "audio" ? this.audioEnabled : this.videoEnabled) {
+					tracks[0].stop();
+					this[type + 'Enabled'] = false;
+				} else {
+					this[type + 'Enabled'] = true;
+					try {
+						const constraints = type === "audio" ? { audio: { deviceId: this.selectedAudioDeviceId } } : { video: { deviceId: this.selectedVideoDeviceId } };
+						const stream = await navigator.mediaDevices.getUserMedia(constraints);
+						const newTrack = type === "audio" ? stream.getAudioTracks()[0] : stream.getVideoTracks()[0];
+						const newStream = type === "audio" ? new MediaStream([...localMediaStream.getVideoTracks(), newTrack]) : new MediaStream([newTrack, ...localMediaStream.getAudioTracks()]);
+						localMediaStream = newStream;
+						attachMediaStream(document.getElementById("selfVideo"), newStream);
+						for (let peer_id in peers) {
+							const sender = peers[peer_id].getSenders().find(s => s.track?.kind === type);
+							if (sender) sender.replaceTrack(newTrack);
+						}
+					} catch (err) {
+						console.error(`Error restarting ${type} track: `, err);
+					}
+				}
+			}
+			this.updateUserData(type + "Enabled", this[type + 'Enabled']);
 		},
 		audioToggle(e) {
-			e.stopPropagation();
-			const audioTracks = localMediaStream.getAudioTracks();
-			if (audioTracks.length > 0) {
-				if (this.audioEnabled) {
-					// Stop the audio track
-					audioTracks[0].stop();
-					this.audioEnabled = false;
-				} else {
-					// Restart the audio track using the selected audio device
-					this.audioEnabled = true;
-					navigator.mediaDevices.getUserMedia({ audio: { deviceId: this.selectedAudioDeviceId } })
-						.then((stream) => {
-							const newAudioTrack = stream.getAudioTracks()[0];
-							const newStream = new MediaStream([...localMediaStream.getVideoTracks(), newAudioTrack]);
-							localMediaStream = newStream;
-							attachMediaStream(document.getElementById("selfVideo"), newStream);
-							for (let peer_id in peers) {
-								const sender = peers[peer_id].getSenders().find((s) => s.track && s.track.kind === "audio");
-								if (sender) {
-									sender.replaceTrack(newAudioTrack);
-								}
-							}
-						})
-						.catch((err) => {
-							console.error('Error restarting audio track: ', err);
-						});
-				}
-			}
-			this.updateUserData("audioEnabled", this.audioEnabled);
+			this.toggleMedia(e, "audio");
 		},
 		videoToggle(e) {
-			e.stopPropagation();
-			const videoTracks = localMediaStream.getVideoTracks();
-			if (videoTracks.length > 0) {
-				if (this.videoEnabled) {
-					// Stop the video track
-					videoTracks[0].stop();
-					this.videoEnabled = false;
-				} else {
-					// Restart the video track using the selected video device
-					this.videoEnabled = true;
-					navigator.mediaDevices.getUserMedia({ video: { deviceId: this.selectedVideoDeviceId } })
-						.then((stream) => {
-							const newVideoTrack = stream.getVideoTracks()[0];
-							const newStream = new MediaStream([newVideoTrack, ...localMediaStream.getAudioTracks()]);
-							localMediaStream = newStream;
-							attachMediaStream(document.getElementById("selfVideo"), newStream);
-							for (let peer_id in peers) {
-								const sender = peers[peer_id].getSenders().find((s) => s.track && s.track.kind === "video");
-								if (sender) {
-									sender.replaceTrack(newVideoTrack);
-								}
-							}
-						})
-						.catch((err) => {
-							console.error('Error restarting video track: ', err);
-						});
-				}
-			}
-			this.updateUserData("videoEnabled", this.videoEnabled);
+			this.toggleMedia(e, "video");
 		},
-
 		toggleSelfVideoMirror() {
 			document.querySelector("#videos .video #selfVideo").classList.toggle("mirror");
 		},
@@ -128,158 +100,123 @@ const App = Vue.createApp({
 			window.localStorage.name = this.name;
 		},
 		updateNameAndPublish() {
-			window.localStorage.name = this.name;
+			this.updateName();
 			this.updateUserData("peerName", this.name);
 		},
-		screenShareToggle(e) {
+		async screenShareToggle(e) {
 			e.stopPropagation();
 			let screenMediaPromise;
-			if (!App.screenShareEnabled) {
-				if (navigator.getDisplayMedia) {
-					screenMediaPromise = navigator.getDisplayMedia({ video: true });
-				} else if (navigator.mediaDevices.getDisplayMedia) {
-					screenMediaPromise = navigator.mediaDevices.getDisplayMedia({ video: true });
-				} else {
-					screenMediaPromise = navigator.mediaDevices.getUserMedia({
-						video: { mediaSource: "screen" },
-					});
-				}
+
+			if (!this.screenShareEnabled) {
+				screenMediaPromise = navigator.mediaDevices.getDisplayMedia({ video: true });
 			} else {
 				screenMediaPromise = navigator.mediaDevices.getUserMedia({ video: true });
 				document.getElementById(this.peerId + "_videoEnabled").style.visibility = "hidden";
 			}
-			screenMediaPromise
-				.then((screenStream) => {
-					App.screenShareEnabled = !App.screenShareEnabled;
 
-					this.videoEnabled = true;
-					this.updateUserData("videoEnabled", this.videoEnabled);
+			try {
+				const screenStream = await screenMediaPromise;
+				this.screenShareEnabled = !this.screenShareEnabled;
+				this.videoEnabled = true;
+				this.updateUserData("videoEnabled", this.videoEnabled);
 
-					for (let peer_id in peers) {
-						const sender = peers[peer_id].getSenders().find((s) => (s.track ? s.track.kind === "video" : false));
-						sender.replaceTrack(screenStream.getVideoTracks()[0]);
-					}
-					screenStream.getVideoTracks()[0].enabled = true;
-					const newStream = new MediaStream([screenStream.getVideoTracks()[0], localMediaStream.getAudioTracks()[0]]);
-					localMediaStream = newStream;
-					attachMediaStream(document.getElementById("selfVideo"), newStream);
-					this.toggleSelfVideoMirror();
+				for (let peer_id in peers) {
+					const sender = peers[peer_id].getSenders().find(s => s.track?.kind === "video");
+					if (sender) sender.replaceTrack(screenStream.getVideoTracks()[0]);
+				}
 
-					screenStream.getVideoTracks()[0].onended = function () {
-						if (App.screenShareEnabled) App.screenShareToggle();
-					};
-					try {
-						if (cabin) {
-							cabin.event("screen-share-" + App.screenShareEnabled);
-						}
-					} catch (e) {}
-				})
-				.catch((e) => {
-					//alert("Unable to share screen. Please use a supported browser.");
-					console.error(e);
-				});
+				screenStream.getVideoTracks()[0].enabled = true;
+				const newStream = new MediaStream([screenStream.getVideoTracks()[0], localMediaStream.getAudioTracks()[0]]);
+				localMediaStream = newStream;
+				attachMediaStream(document.getElementById("selfVideo"), newStream);
+				this.toggleSelfVideoMirror();
+
+				screenStream.getVideoTracks()[0].onended = () => {
+					if (this.screenShareEnabled) this.screenShareToggle();
+				};
+
+				if (cabin) cabin.event("screen-share-" + this.screenShareEnabled);
+			} catch (err) {
+				console.error("Error sharing screen: ", err);
+			}
 		},
 		updateUserData(key, value) {
 			this.sendDataMessage(key, value);
-
+			const elementId = `${this.peerId}_${key}`;
 			switch (key) {
 				case "audioEnabled":
-					document.getElementById(this.peerId + "_audioEnabled").className =
-						"audioEnabled icon-mic" + (value ? "" : "-off");
+					document.getElementById(elementId).className = `audioEnabled icon-mic${value ? "" : "-off"}`;
 					break;
 				case "videoEnabled":
-					document.getElementById(this.peerId + "_videoEnabled").style.visibility = value ? "hidden" : "visible";
+					document.getElementById(elementId).style.visibility = value ? "hidden" : "visible";
 					break;
 				case "peerName":
-					document.getElementById(this.peerId + "_videoPeerName").innerHTML = value + " (you)";
+					document.getElementById(elementId).innerHTML = `${value} (you)`;
 					break;
 				default:
 					break;
 			}
 		},
+		async changeDevice(deviceId, type) {
+			const constraints = type === "audio" ? { audio: { deviceId } } : { video: { deviceId } };
+
+			try {
+				const stream = await navigator.mediaDevices.getUserMedia(constraints);
+				this[type + 'Enabled'] = true;
+				this.updateUserData(type + "Enabled", this[type + 'Enabled']);
+
+				for (let peer_id in peers) {
+					const sender = peers[peer_id].getSenders().find(s => s.track?.kind === type);
+					if (sender) sender.replaceTrack(stream.getTracks()[0]);
+				}
+
+				const newStream = type === "audio" ? new MediaStream([localMediaStream.getVideoTracks()[0], stream.getAudioTracks()[0]]) : new MediaStream([stream.getVideoTracks()[0], ...localMediaStream.getAudioTracks()]);
+				localMediaStream = newStream;
+				attachMediaStream(document.getElementById("selfVideo"), newStream);
+				if (type === "audio") this.selectedAudioDeviceId = deviceId;
+				else this.selectedVideoDeviceId = deviceId;
+			} catch (err) {
+				console.error(`Error changing ${type} device: `, err);
+				alert(`Error while swapping ${type}`);
+			}
+		},
 		changeCamera(deviceId) {
-			navigator.mediaDevices
-				.getUserMedia({ video: { deviceId: deviceId } })
-				.then((camStream) => {
-					console.log(camStream);
-
-					this.videoEnabled = true;
-					this.updateUserData("videoEnabled", this.videoEnabled);
-
-					for (let peer_id in peers) {
-						const sender = peers[peer_id].getSenders().find((s) => (s.track ? s.track.kind === "video" : false));
-						sender.replaceTrack(camStream.getVideoTracks()[0]);
-					}
-					camStream.getVideoTracks()[0].enabled = true;
-
-					const newStream = new MediaStream([camStream.getVideoTracks()[0], localMediaStream.getAudioTracks()[0]]);
-					localMediaStream = newStream;
-					attachMediaStream(document.getElementById("selfVideo"), newStream);
-					this.selectedVideoDeviceId = deviceId;
-				})
-				.catch((err) => {
-					console.log(err);
-					alert("Error while swaping camera");
-				});
+			this.changeDevice(deviceId, "video");
 		},
 		changeMicrophone(deviceId) {
-			navigator.mediaDevices
-				.getUserMedia({ audio: { deviceId: deviceId } })
-				.then((micStream) => {
-					this.audioEnabled = true;
-					this.updateUserData("audioEnabled", this.audioEnabled);
-
-					for (let peer_id in peers) {
-						const sender = peers[peer_id].getSenders().find((s) => (s.track ? s.track.kind === "audio" : false));
-						sender.replaceTrack(micStream.getAudioTracks()[0]);
-					}
-					micStream.getAudioTracks()[0].enabled = true;
-
-					const newStream = new MediaStream([localMediaStream.getVideoTracks()[0], micStream.getAudioTracks()[0]]);
-					localMediaStream = newStream;
-					attachMediaStream(document.getElementById("selfVideo"), newStream);
-					this.selectedAudioDeviceId = deviceId;
-				})
-				.catch((err) => {
-					console.log(err);
-					alert("Error while swaping microphone");
-				});
+			this.changeDevice(deviceId, "audio");
 		},
 		sanitizeString(str) {
 			const tagsToReplace = { "&": "&amp;", "<": "&lt;", ">": "&gt;" };
-			const replaceTag = (tag) => tagsToReplace[tag] || tag;
-			const safe_tags_replace = (str) => str.replace(/[&<>]/g, replaceTag);
-			return safe_tags_replace(str);
+			return str.replace(/[&<>]/g, tag => tagsToReplace[tag] || tag);
 		},
 		linkify(str) {
-			return this.sanitizeString(str).replace(/(?:(?:https?|ftp):\/\/)?[\w/\-?=%.]+\.[\w/\-?=%]+/gi, (match) => {
-				let displayURL = match.trim().replace("https://", "").replace("https://", "");
-				displayURL = displayURL.length > 25 ? displayURL.substr(0, 25) + "&hellip;" : displayURL;
-				const url = !/^https?:\/\//i.test(match) ? "http://" + match : match;
+			return this.sanitizeString(str).replace(/(?:https?|ftp):\/\/[\w/\-?=%.]+\.[\w/\-?=%]+/gi, match => {
+				let displayURL = match.trim().replace(/^https?:\/\//, "");
+				displayURL = displayURL.length > 25 ? `${displayURL.substr(0, 25)}&hellip;` : displayURL;
+				const url = /^https?:\/\//i.test(match) ? match : `http://${match}`;
 				return `<a href="${url}" target="_blank" class="link" rel="noopener">${displayURL}</a>`;
 			});
 		},
 		edit(e) {
-			this.typing = e.srcElement.textContent;
+			this.typing = e.target.textContent;
 		},
 		paste(e) {
 			e.preventDefault();
 			const clipboardData = e.clipboardData || window.clipboardData;
-			const pastedText = clipboardData.getData("Text");
-			document.execCommand("inserttext", false, pastedText.replace(/(\r\n\t|\n|\r\t)/gm, " "));
+			const pastedText = clipboardData.getData("Text").replace(/(\r\n\t|\n|\r\t)/gm, " ");
+			document.execCommand("inserttext", false, pastedText);
 		},
 		sendChat(e) {
-			e.stopPropagation();
 			e.preventDefault();
-
-			if (!this.typing.length) return;
+			if (!this.typing.trim()) return;
 
 			if (Object.keys(peers).length > 0) {
 				const composeElement = document.getElementById("compose");
 				this.sendDataMessage("chat", this.typing);
 				this.typing = "";
 				composeElement.textContent = "";
-				composeElement.blur;
+				composeElement.blur();
 			} else {
 				alert("No peers in the room");
 			}
@@ -293,18 +230,15 @@ const App = Vue.createApp({
 				date: new Date().toISOString(),
 			};
 
-			switch (key) {
-				case "chat":
-					this.chats.push(dataMessage);
-					this.$nextTick(this.scrollToBottom);
-					break;
-				default:
-					break;
+			if (key === "chat") {
+				this.chats.push(dataMessage);
+				this.$nextTick(this.scrollToBottom);
 			}
 
-			Object.keys(dataChannels).map((peer_id) => dataChannels[peer_id].send(JSON.stringify(dataMessage)));
+			Object.values(dataChannels).forEach(channel => channel.send(JSON.stringify(dataMessage)));
 		},
 		handleIncomingDataChannelMessage(dataMessage) {
+			const elementId = `${dataMessage.id}_${dataMessage.type}`;
 			switch (dataMessage.type) {
 				case "chat":
 					this.showChat = true;
@@ -313,16 +247,13 @@ const App = Vue.createApp({
 					this.$nextTick(this.scrollToBottom);
 					break;
 				case "audioEnabled":
-					document.getElementById(dataMessage.id + "_audioEnabled").className =
-						"audioEnabled icon-mic" + (dataMessage.message ? "" : "-off");
+					document.getElementById(elementId).className = `audioEnabled icon-mic${dataMessage.message ? "" : "-off"}`;
 					break;
 				case "videoEnabled":
-					document.getElementById(dataMessage.id + "_videoEnabled").style.visibility = dataMessage.message
-						? "hidden"
-						: "visible";
+					document.getElementById(elementId).style.visibility = dataMessage.message ? "hidden" : "visible";
 					break;
 				case "peerName":
-					document.getElementById(dataMessage.id + "_videoPeerName").innerHTML = dataMessage.message;
+					document.getElementById(elementId).innerHTML = dataMessage.message;
 					break;
 				default:
 					break;
@@ -334,14 +265,11 @@ const App = Vue.createApp({
 		},
 		formatDate(dateString) {
 			const date = new Date(dateString);
-			const hours = date.getHours() > 12 ? date.getHours() - 12 : date.getHours();
-			return (
-				(hours < 10 ? "0" + hours : hours) +
-				":" +
-				(date.getMinutes() < 10 ? "0" + date.getMinutes() : date.getMinutes()) +
-				" " +
-				(date.getHours() >= 12 ? "PM" : "AM")
-			);
+			const hours = date.getHours();
+			const minutes = date.getMinutes();
+			const period = hours >= 12 ? "PM" : "AM";
+			const formattedHours = hours % 12 || 12;
+			return `${formattedHours}:${minutes.toString().padStart(2, "0")} ${period}`;
 		},
 		setStyle(key, value) {
 			document.documentElement.style.setProperty(key, value);
@@ -351,15 +279,14 @@ const App = Vue.createApp({
 				if (cabin) {
 					cabin.event(e.target.getAttribute("data-cabin-event"));
 				}
-			} catch (e) {}
+			} catch (error) {
+				console.error("Error sending cabin event: ", error);
+			}
 		},
 		exit() {
 			signalingSocket.close();
-			for (let peer_id in peers) {
-				peers[peer_id].close();
-			}
+			Object.values(peers).forEach(peer => peer.close());
 			this.callEnded = true;
-			history.go();
 			location.reload();
 		},
 	},
