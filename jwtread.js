@@ -46,6 +46,13 @@ app.use(verifyToken);
 
 app.get('/', (req, res) => {
   res.send('Hello World!');
+  // Create a json file to collect simple user data from JWT's payload such as NAME, and EMAIL
+  const { name, email } = req.user;
+  const user = { name, email };
+  res.json(user);
+
+  res.json(email);
+  res.send("Your email is", email, "and your name is", name);
 });
 
 app.listen(3333)
