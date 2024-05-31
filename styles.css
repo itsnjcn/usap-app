@@ -29,15 +29,6 @@ font-optical-sizing:auto
 --vh:1vh
 }
 
-.selector {
-user-drag:none;
--webkit-user-drag:none;
-user-select:none;
--moz-user-select:none;
--webkit-user-select:none;
--ms-user-select:none
-}
-
 * {
 outline:none;
 box-sizing:border-box
