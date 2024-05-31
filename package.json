@@ -11,5 +11,8 @@
 		"webrtc",
 		"socket.io",
 		"video"
-	]
+	],
+	"devDependencies": {
+		"wrangler": "^3.57.2"
+	}
 }
