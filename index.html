@@ -49,7 +49,7 @@
 			<div id="intro" v-if="!callInitiated && !showChat && !showSettings">
 				<img src="icons/fullb.png" />
 				<p id="center">Communicate, enjoy, and connect with usap!</p>
-				<h2>Welcome! <a id="userName"></a>!</h2>
+				<h2>Welcome to usap!</h2>
 				<p>
 					<label for="roomId">Room ID:</label>
 					<input type="text" id="roomId" v-model="roomId" placeholder="Enter a room id" maxlength="6" />
@@ -59,7 +59,7 @@
 					<label for="yourName">Name:</label>
 					<input type="text" id="yourName" v-model="name" v-on:keyup="updateName"
 						placeholder="Enter your name" />
-					<small>Leave this field blank to use your account's name instead.</small>
+					<small>Required field.</small>
 				</p>
 
 				<div class="footer">
