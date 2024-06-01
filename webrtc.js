@@ -15,7 +15,7 @@ const APP_URL = (() => {
 const USE_AUDIO = true;
 const USE_VIDEO = true;
 
-const SIGNALLING_SERVER = SIGNALING_SERVER_URL;
+const SIGNALLING_SERVER = process.env.SIGNALING_SERVER_URL;
 
 let signalingSocket = null; /* our socket.io connection to our webserver */
 let localMediaStream = null; /* our own microphone / webcam */
