@@ -15,8 +15,7 @@ const APP_URL = (() => {
 const USE_AUDIO = true;
 const USE_VIDEO = true;
 
-// You can continue using this signalling server or spin up your own.
-const SIGNALLING_SERVER = 'https://talk-zxrf.onrender.com';
+const SIGNALLING_SERVER = SIGNALING_SERVER_URL;
 
 let signalingSocket = null; /* our socket.io connection to our webserver */
 let localMediaStream = null; /* our own microphone / webcam */
