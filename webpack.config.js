@@ -1,7 +1,7 @@
 module.exports = {
     plugins: [
         new webpack.DefinePlugin({
-          'process.env.NODE_ENV': JSON.stringify(process.env.SIGNALING_SERVER_URL),
+          'process.env.SIGNALING_SERVER_URL': JSON.stringify(process.env.SIGNALING_SERVER_URL),
         })
     ],
     }
