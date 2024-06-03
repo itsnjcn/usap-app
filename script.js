@@ -36,7 +36,7 @@ const App = Vue.createApp({
 			hideToolbar: true,
 			selectedAudioDeviceId: "",
 			selectedVideoDeviceId: "",
-			name: window.localStorage.name || "",
+			name: window.localStorage.name,
 			typing: "",
 			chats: [],
 			callInitiated: false,
@@ -142,16 +142,17 @@ const App = Vue.createApp({
 		},
 		updateUserData(key, value) {
 			this.sendDataMessage(key, value);
-			const elementId = `${this.peerId}_${key}`;
+
 			switch (key) {
 				case "audioEnabled":
-					document.getElementById(elementId).className = `audioEnabled icon-mic${value ? "" : "-off"}`;
+					document.getElementById(this.peerId + "_audioEnabled").className =
+						"audioEnabled icon-mic" + (value ? "" : "-off");
 					break;
 				case "videoEnabled":
-					document.getElementById(elementId).style.visibility = value ? "hidden" : "visible";
+					document.getElementById(this.peerId + "_videoEnabled").style.visibility = value ? "hidden" : "visible";
 					break;
 				case "peerName":
-					document.getElementById(elementId).innerHTML = `${value} (you)`;
+					document.getElementById(this.peerId + "_videoPeerName").innerHTML = value + " (you)";
 					break;
 				default:
 					break;
