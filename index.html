@@ -40,13 +40,13 @@
 					<small>Room IDs generate automatically. Enter the ID to join your peers!</small>
 				</p>
 				<p>
-					<label for="yourName">Name:</label>
+					<label for="yourName">Participant Name:</label>
 					<input type="text" id="yourName" v-model="name" v-on:keyup="updateName"
 						placeholder="Enter your name" />
-					<small>Required field.</small>
+					<small>Required field. Your display name in the meeting.</small>
 				</p>
 
-				<div class="footer">
+				<div class="buttons">
 					<button v-on:click="initiateCall">Proceed ➡</button>
 					<a href="https://usap.njcn.dev/cdn-cgi/access/logout">Logout</a>
 				</div>
@@ -57,7 +57,7 @@
 
 
 			<!-- CALL PAGE -->
-			<div id="chatWrap" v-if="showChat">
+			<div id="chatWrap" v-if="showChat"> <!-- CHAT -->
 				<div id="chats" ref="chatContainer">
 					<div class="chat" v-for="(chat, i) in chats" v-bind:key="i">
 						<span class="name">{{chat.name}}</span>
@@ -74,7 +74,7 @@
 				<small class="light">Press enter to submit</small>
 			</div>
 
-			<div id="settings" v-if="showSettings">
+			<div id="settings" v-if="showSettings"> <!-- SETTINGS -->
 				<div id="name" class="label">
 					<span>Name:</span>
 					<input type="text" placeholder="Enter your name" v-model="name" v-on:keyup="updateNameAndPublish" />
@@ -107,7 +107,7 @@
 				</div>
 			</div>
 
-			<div id="actionsWrap" v-if="callInitiated">
+			<div id="actionsWrap" v-if="callInitiated"> <!-- CALL ACTIONS -->
 				<div id="actions">
 					<button v-bind:class="'icon-mic'+(audioEnabled ? '' : '-off')" v-on:click="audioToggle"></button>
 					<button v-bind:class="'icon-video'+(videoEnabled ? '' : '-off')" v-on:click="videoToggle"></button>
