@@ -32,6 +32,11 @@ p {
     margin-bottom: 10px;
 }
 
+img {
+    width: 10%;
+    margin-bottom: 20px;
+}
+
 footer {
     position: fixed;
     bottom: 0;
