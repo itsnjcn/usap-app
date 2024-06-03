@@ -18,7 +18,7 @@ const util = require("util");
 const PORT = process.env.PORT || 3000;
 
 server.listen(PORT, null, () => {
-	console.log("Talk server started");
+	console.log("usap server started");
 	console.log({ port: PORT, node_version: process.versions.node });
 });
 
