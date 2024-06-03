@@ -148,7 +148,7 @@ window.initiateCall = () => {
 
 		/* Add our local stream */
 		peerConnection.addStream(localMediaStream);
-		dataChannels[peer_id] = peerConnection.createDataChannel("talk__data_channel");
+		dataChannels[peer_id] = peerConnection.createDataChannel("usap__data_channel");
 
 		if (config.should_create_offer) {
 			peerConnection.onnegotiationneeded = () => {
