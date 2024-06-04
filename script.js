@@ -124,6 +124,7 @@ const App = Vue.createApp({
 					this.audioEnabled = false;
 				} else {
 					// Restart the audio track using the selected audio device
+					this.audioEnabled = true;
 					navigator.mediaDevices.getUserMedia({ audio: { deviceId: this.selectedAudioDeviceId } })
 						.then((stream) => {
 							const newAudioTrack = stream.getAudioTracks()[0];
@@ -136,7 +137,6 @@ const App = Vue.createApp({
 									sender.replaceTrack(newAudioTrack);
 								}
 							}
-							this.audioEnabled = true;
 						})
 						.catch((err) => {
 							console.error('Error restarting audio track: ', err);
